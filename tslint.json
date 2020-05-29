@@ -1,0 +1,11 @@
+{
+    "rules": {
+        "no-unreachable": true,
+        "semicolon": [true, "never"]
+    },
+    "jsRules": {
+        "max-line-length": {
+            "options": [120]
+        }
+    }
+}
