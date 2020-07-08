@@ -5,7 +5,10 @@ import { createMuiTheme } from '@material-ui/core/styles'
 import { ThemeProvider } from '@material-ui/styles'
 import { blue, pink } from '@material-ui/core/colors'
 
+import { ApolloProvider } from '@apollo/react-hooks'
+
 import Main from './components/Main'
+import ApolloClient from './ApolloClient'
 
 const theme = createMuiTheme({
   palette: {
@@ -17,8 +20,10 @@ const theme = createMuiTheme({
 })
 
 export default () => (
-  <ThemeProvider theme={theme}>
-    <CssBaseline />
-    <Main />
-  </ThemeProvider>
+  <ApolloProvider client={ApolloClient}>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Main />
+    </ThemeProvider>
+  </ApolloProvider>
 )

@@ -19,9 +19,9 @@ const useStyles = makeStyles((theme: Theme) =>
 export default () => {
   const classes = useStyles()
 
-  const [selected, setSelected] = useState('Paper')
+  const [selected, setSelected] = useState('PAPER')
 
-  const oppositeValue = selected === 'Real' ? 'Paper' : 'Real'
+  const oppositeValue = selected === 'REAL' ? 'PAPER' : 'REAL'
 
   return (
     <div className={classes.flex} >

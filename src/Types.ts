@@ -1,4 +1,4 @@
-export type AppType = 'Real' | 'Paper'
+export type AppType = 'REAL' | 'PAPER'
 
 export type Balance = {
   value: number

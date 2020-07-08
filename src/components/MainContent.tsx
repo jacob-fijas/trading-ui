@@ -5,12 +5,16 @@ import { makeStyles } from '@material-ui/styles'
 import { Fab, Grid, Typography } from '@material-ui/core'
 import Box from '@material-ui/core/Box'
 import AddIcon from '@material-ui/icons/Add'
+import { useQuery, useMutation } from '@apollo/react-hooks'
 
 import StockCard from './StockCard'
 import StockForm from './StockForm'
-import { getBalance, getStocks, addStock, editStock, moveStock, removeStock } from './Test'
+import StockDetails from './StockDetails'
 
-import { AppType, Stock } from '../Types'
+import { GET_SUMMARY } from '../queries'
+import { ADD_STOCK, EDIT_STOCK, MOVE_STOCK, REMOVE_STOCK } from '../mutations'
+
+import { AppType, Balance, Stock } from '../Types'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -50,56 +54,75 @@ export default function MainContent(props: MainContent) {
   const classes = useStyles()
 
   const [formOpen, setFormOpen] = useState(false)
-  const [selectedStock, setSelectedStock] = useState<Stock | undefined>(undefined)
+  const [editingStock, setEditingStock] = useState<Stock | undefined>(undefined)
+  const [selectedStock, setSelectedStock] = useState<string | undefined>(undefined)
   const [stockIndex, setStockIndex] = useState(-1)
 
+  
+  const variables = { type: type.toUpperCase() }
+  const refetchQueries = [{ query: GET_SUMMARY, variables }]
+
+  const { loading, data } = useQuery(GET_SUMMARY, { variables })
+  const [addStock] = useMutation(ADD_STOCK, { refetchQueries })
+  const [editStock] = useMutation(EDIT_STOCK, { refetchQueries })
+  const [moveStock] = useMutation(MOVE_STOCK, { refetchQueries })
+  const [removeStock] = useMutation(REMOVE_STOCK, { refetchQueries })
+
   function edit(index: number, stock: Stock) {
-    setSelectedStock(stock)
+    setEditingStock(stock)
     setStockIndex(index)
     setFormOpen(true)
   }
 
   function toggle() {
     setFormOpen(!formOpen)
-    setSelectedStock(undefined)
+    setEditingStock(undefined)
     setStockIndex(-1)
   }
 
-  function onSubmitStock(stock: Stock) {
+  async function onSubmitStock(stock: Stock) {
     if (stockIndex < 0) {
-      addStock(type, stock)
+      addStock({ variables: { type, stock } })
     } else {
-      editStock(type, stockIndex, stock)
+      editStock({ variables: { type, index: stockIndex, stock } })
     }
     toggle()
   }
 
   function onRemoveStock() {
-    removeStock(type, stockIndex)
+    removeStock({ variables: { type, index: stockIndex } })
     toggle()
   }
 
-  const balance = getBalance(type)
-  const stocks = getStocks(type)
+  function onMoveStock(index: number) {
+    moveStock({ variables: { type, index } })
+  }
+
+  if (loading) {
+    return null
+  }
+
+  const { balance, stocks }: { balance: Balance, stocks: Stock[] } = data.summary
 
   return (
     <Box className={classes.body}>
       <StockForm 
-        title={selectedStock ? 'Edit Stock' : 'Add New Stock'}
+        title={editingStock ? 'Edit Stock' : 'Add New Stock'}
         open={formOpen}
-        editting={!!selectedStock}
-        defaults={selectedStock}
+        editting={!!editingStock}
+        defaults={editingStock}
         onClose={() => setFormOpen(false)}
         submit={onSubmitStock}
         remove={onRemoveStock}
       />
+      <StockDetails stock={selectedStock} onClose={() => setSelectedStock(undefined)} />
       <Box display="flex" flexDirection="row" className={classes.row}>
         <Box className={classes.flex} >
           <Typography variant="h3" title='Account Balance'>
             $ {balance.value}
           </Typography>
           <Typography variant="h6" className={classes.subtitle} title='Account Balance Time'>
-            {balance.timestamp.toISOString()}
+            {new Date(balance.timestamp).toISOString()}
           </Typography>
         </Box>
         <Fab color="primary" aria-label="add" onClick={toggle} title='New Stock' >
@@ -120,7 +143,7 @@ export default function MainContent(props: MainContent) {
         <Box display="flex" flexDirection="row">
           <Box marginRight={1}>
             <Typography variant="h6" className={classes.subtitle} >
-            Max Api Usage:
+            Max API Usage:
             </Typography>
           </Box>
           <Typography variant="h6">
@@ -130,8 +153,8 @@ export default function MainContent(props: MainContent) {
       </Box>
       <Grid container spacing={5} className={classes.container} >
         {stocks.map((stock, i) => (
-          <Grid item>
-            <StockCard key={stock.symbol} stock={stock} edit={(s) => edit(i, s)} move={() => moveStock(type, i)} />
+          <Grid item key={stock.symbol}>
+            <StockCard stock={stock} edit={(s) => edit(i, s)} move={() => onMoveStock(i)} onSelect={setSelectedStock} />
           </Grid>))}
       </Grid>
     </Box>
