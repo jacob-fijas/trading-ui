@@ -31,7 +31,7 @@
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-material-ui": "0.0.1",
-    "react-scripts": "2.1.8",
+    "react-scripts": "5.0.1",
     "react-timeseries-charts": "^0.16.1",
     "typescript": "^3.9.3"
   },
